@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Stock Portfolio Optimizer</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- ChartJS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/lucide.min.js"></script>
+
+    <!-- External CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body class="text-slate-900">
+
+<!-- Navigation -->
+<nav class="sticky top-0 z-50 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+
+    <div class="flex items-center gap-2">
+        <div class="bg-blue-600 p-2 rounded-lg">
+            <i data-lucide="trending-up" class="text-white w-5 h-5"></i>
+        </div>
+
+        <h1 class="font-bold text-xl tracking-tight">
+            Portfolio<span class="text-blue-600">Optima</span>
+        </h1>
+    </div>
+
+    <div class="flex items-center gap-4">
+        <span class="text-sm font-medium text-slate-500">
+            v2.4 Pro
+        </span>
+
+        <div class="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
+            <i data-lucide="user" class="w-4 h-4 text-slate-600"></i>
+        </div>
+    </div>
+
+</nav>
+
+
+<main class="max-w-7xl mx-auto p-6">
+
+<!-- Top Stats Row -->
+
+<div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+
+    <!-- Total Value -->
+
+    <div class="glass-panel p-4 rounded-xl shadow-sm">
+
+        <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+            Total Value
+        </p>
+
+        <h2 id="total-value" class="text-2xl font-bold">$0.00</h2>
+
+        <div class="flex items-center gap-1 text-emerald-500 text-sm mt-2">
+            <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+            <span id="total-return">+0.0%</span>
+        </div>
+
+    </div>
+
+
+    <!-- Beta -->
+
+    <div class="glass-panel p-4 rounded-xl shadow-sm">
+
+        <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+            Portfolio Beta
+        </p>
+
+        <h2 id="portfolio-beta" class="text-2xl font-bold">1.00</h2>
+
+        <p class="text-slate-400 text-xs mt-2">
+            Relative to S&P 500
+        </p>
+
+    </div>
+
+
+    <!-- Sharpe -->
+
+    <div class="glass-panel p-4 rounded-xl shadow-sm">
+
+        <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+            Sharpe Ratio
+        </p>
+
+        <h2 id="sharpe-ratio" class="text-2xl font-bold">0.00</h2>
+
+        <div id="sharpe-label"
+        class="inline-block px-2 py-0.5 rounded text-[10px] font-bold mt-2 bg-slate-100 text-slate-600 uppercase">
+
+        Neutral
+
+        </div>
+
+    </div>
+
+
+    <!-- Diversification -->
+
+    <div class="glass-panel p-4 rounded-xl shadow-sm">
+
+        <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">
+            Diversification Score
+        </p>
+
+        <h2 id="div-score" class="text-2xl font-bold">0%</h2>
+
+        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3">
+            <div id="div-bar" class="bg-blue-500 h-1.5 rounded-full" style="width:0%"></div>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- MAIN GRID -->
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+<!-- LEFT COLUMN -->
+
+<div class="lg:col-span-4 space-y-6">
+
+<!-- ADD ASSET -->
+
+<div class="glass-panel p-5 rounded-xl shadow-sm">
+
+<h3 class="font-bold text-slate-800 mb-4 flex items-center gap-2">
+<i data-lucide="plus-circle" class="w-4 h-4 text-blue-600"></i>
+Add New Position
+</h3>
+
+<div class="space-y-3">
+
+<div>
+
+<label class="text-xs font-medium text-slate-500 block mb-1">
+Ticker Symbol
+</label>
+
+<input
+type="text"
+id="asset-ticker"
+placeholder="AAPL, TSLA"
+class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none">
+
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+
+<div>
+
+<label class="text-xs font-medium text-slate-500 block mb-1">
+Quantity
+</label>
+
+<input
+type="number"
+id="asset-qty"
+class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+
+</div>
+
+<div>
+
+<label class="text-xs font-medium text-slate-500 block mb-1">
+Avg Cost
+</label>
+
+<input
+type="number"
+id="asset-cost"
+class="w-full px-3 py-2 border border-slate-200 rounded-lg">
+
+</div>
+
+</div>
+
+<button
+id="add-asset-btn"
+class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg">
+
+Add to Portfolio
+
+</button>
+
+</div>
+
+</div>
+
+
+<!-- HOLDINGS LIST -->
+
+<div class="glass-panel rounded-xl shadow-sm overflow-hidden flex flex-col h-[500px]">
+
+<div class="p-4 border-b border-slate-100 flex justify-between items-center">
+
+<h3 class="font-bold text-slate-800">
+Current Holdings
+</h3>
+
+<span id="asset-count"
+class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-bold">
+
+0
+
+</span>
+
+</div>
+
+<div id="assets-list"
+class="flex-grow overflow-y-auto custom-scrollbar p-2 space-y-2">
+
+<div id="empty-state"
+class="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
+
+<i data-lucide="pie-chart" class="w-12 h-12 mb-3 opacity-20"></i>
+
+<p class="text-sm">
+No assets added yet. Start by adding a ticker.
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- RIGHT COLUMN -->
+
+<div class="lg:col-span-8 space-y-6">
+
+<div class="glass-panel p-5 rounded-xl shadow-sm">
+
+<div class="flex gap-4 border-b border-slate-100 w-full mb-6">
+
+<button
+class="tab-btn tab-active pb-2 text-sm font-semibold"
+data-tab="performance">
+
+Performance
+
+</button>
+
+<button
+class="tab-btn pb-2 text-sm font-semibold text-slate-400"
+data-tab="risk">
+
+Risk / Return
+
+</button>
+
+<button
+class="tab-btn pb-2 text-sm font-semibold text-slate-400"
+data-tab="allocation">
+
+Allocation
+
+</button>
+
+</div>
+
+
+
+<!-- PERFORMANCE -->
+
+<div id="tab-performance" class="tab-content">
+
+<div class="chart-container">
+<canvas id="performanceChart"></canvas>
+</div>
+
+</div>
+
+
+<!-- RISK -->
+
+<div id="tab-risk" class="tab-content hidden">
+
+<div class="chart-container">
+<canvas id="riskReturnChart"></canvas>
+</div>
+
+</div>
+
+
+<!-- ALLOCATION -->
+
+<div id="tab-allocation" class="tab-content hidden">
+
+<div class="chart-container">
+<canvas id="allocationChart"></canvas>
+</div>
+
+</div>
+
+</div>
+
+
+
+<!-- OPTIMIZER -->
+
+<div class="glass-panel p-6 rounded-xl shadow-sm bg-slate-900 text-white">
+
+<div class="flex justify-between mb-4">
+
+<h3 class="text-lg font-bold">
+Portfolio Optimization Engine
+</h3>
+
+<button
+id="run-optimizer"
+class="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-full">
+
+RECALCULATE
+
+</button>
+
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+<div>
+<p class="text-xs text-slate-400 uppercase">
+Expected Return
+</p>
+
+<p id="exp-return" class="text-2xl font-mono">
+0.00%
+</p>
+
+</div>
+
+<div>
+
+<p class="text-xs text-slate-400 uppercase">
+Volatility
+</p>
+
+<p id="exp-volatility" class="text-2xl font-mono">
+0.00%
+</p>
+
+</div>
+
+<div>
+
+<p class="text-xs text-slate-400 uppercase">
+Score
+</p>
+
+<p id="opt-score" class="text-2xl font-mono text-emerald-400">
+---
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</main>
+
+
+<!-- Notifications -->
+
+<div id="notification-area"
+class="fixed bottom-6 right-6 z-[100] flex flex-col gap-2">
+
+</div>
+
+
+<!-- JS FILE -->
+
+<script src="script.js"></script>
+
+</body>
+</html>
